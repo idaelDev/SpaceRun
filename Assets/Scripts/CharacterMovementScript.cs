@@ -5,9 +5,10 @@ using System.Collections;
 public class CharacterMovementScript : MonoBehaviour {
 
     [SerializeField]
-    private float moveSpeed = 10f;
+    private float maxSpeed = 50;
     [SerializeField]
     private float jumpForce = 10f;
+    [SerializeField]
 
     private bool isGrounded;
     private Rigidbody rigid;
@@ -34,13 +35,16 @@ public class CharacterMovementScript : MonoBehaviour {
 
 	public void Move(float horizontal, float vertical)
     {
-        float verticalMove = (isGrounded) ? 0 : vertical;
-        Vector3 direction = new Vector3(horizontal, verticalMove, 0) * moveSpeed * Time.fixedDeltaTime;
-        rigid.MovePosition(rigid.position + direction);
+        rigid.velocity = new Vector3(horizontal * maxSpeed, rigid.velocity.y, 0);
+
     }
 
     public void Jump()
     {
-        rigid.AddForce(Vector3.up * jumpForce);
+        if (isGrounded)
+        {
+            isGrounded = false;
+            rigid.AddForce(Vector3.up * jumpForce);
+        }
     }
 }
