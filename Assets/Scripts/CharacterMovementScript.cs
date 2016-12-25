@@ -1,16 +1,21 @@
 ﻿using UnityEngine;
-using System.Collections;
 
+/// <summary>
+/// This class manage the movement of characters in the game
+/// It is based on rigidbody physics so it required a rigidbody in te scene.
+/// </summary>
 [RequireComponent(typeof(Rigidbody))]
-public class CharacterMovementScript : MonoBehaviour {
+public class CharacterMovementScript : AbstractControllable {
 
+    //Parameters
     [SerializeField]
     private float maxSpeed = 50;
     [SerializeField]
     private float jumpForce = 10f;
-    [SerializeField]
 
     private bool isGrounded;
+
+    //Component References
     private Rigidbody rigid;
     private SphereCollider footCollider;
 
@@ -33,18 +38,18 @@ public class CharacterMovementScript : MonoBehaviour {
         }
     }
 
-	public void Move(float horizontal, float vertical)
+    public override void Control(float horizontal, float vertical, bool jump)
     {
         rigid.velocity = new Vector3(horizontal * maxSpeed, rigid.velocity.y, 0);
 
-    }
-
-    public void Jump()
-    {
-        if (isGrounded)
+        if (jump)
         {
-            isGrounded = false;
-            rigid.AddForce(Vector3.up * jumpForce);
+            if (isGrounded)
+            {
+                isGrounded = false;
+                rigid.AddForce(Vector3.up * jumpForce);
+            }
         }
     }
+    
 }
