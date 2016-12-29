@@ -3,48 +3,24 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ConsoleObject : AbstractActionable{
+public class ConsoleObject : MonoBehaviour{
 
     public AbstractControllable target;
-
-    private bool isPlayerConnected;
-    private PlayerControllerScript playerInControl = null;
-
-    public override void Action(PlayerControllerScript controler)
+    private bool isOccupîed;
+    
+    public bool ConnectPlayer(PlayerControllerScript player)
     {
-        if(!isPlayerConnected)
-        {
-            isPlayerConnected = true;
-            playerInControl = controler;
-            controler.SetConnected(true);
-            target.AddController(controler);
-        }
-        else if(playerInControl == controler)
-        {
-            isPlayerConnected = false;
-            playerInControl.SetConnected(false);
-            target.RemoveController(playerInControl);
-        }
+        if (isOccupîed)
+            return false;
+        target.AddController(player);
+        isOccupîed = true;
+        return true;
     }
 
-    void OnTriggerEnter(Collider other)
+    public void DisconectPlayer(PlayerControllerScript player)
     {
-        if(other.gameObject.tag == "Player")
-        {
-            if(!isPlayerConnected)
-            {
-                AddActioner(other.gameObject.GetComponent<PlayerControllerScript>());
-            }
-        }
-    }
-
-    void OnTriggerExit(Collider other)
-    {
-        if (other.gameObject.tag == "Player")
-        {
-            Debug.Log("Player out");
-            RemoveActioner(other.gameObject.GetComponent<PlayerControllerScript>());
-        }
+        isOccupîed = false;
+        target.RemoveController(player);
     }
 
 }
