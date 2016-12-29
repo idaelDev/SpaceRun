@@ -84,6 +84,7 @@
     <Compile Include="Assets\Scripts\AbstractControllable.cs" />
     <Compile Include="Assets\Scripts\CharacterMovementScript.cs" />
     <Compile Include="Assets\Scripts\ConsoleObject.cs" />
+    <Compile Include="Assets\Scripts\GameManager.cs" />
     <Compile Include="Assets\Scripts\PlayerControllerScript.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
