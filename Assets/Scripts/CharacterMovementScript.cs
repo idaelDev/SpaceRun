@@ -21,6 +21,7 @@ public class CharacterMovementScript : AbstractControllable {
 
     public void Awake()
     {
+        Physics.gravity *= 2;
         rigid = GetComponent<Rigidbody>();
         footCollider = GetComponentInChildren<SphereCollider>();
     }
@@ -40,7 +41,6 @@ public class CharacterMovementScript : AbstractControllable {
 
     public override void Control(float horizontal, float vertical, bool jump)
     {
-        rigid.velocity = new Vector3(horizontal * maxSpeed, rigid.velocity.y, 0);
 
         if (jump)
         {
@@ -50,6 +50,8 @@ public class CharacterMovementScript : AbstractControllable {
                 rigid.AddForce(Vector3.up * jumpForce);
             }
         }
+
+        rigid.velocity = new Vector3(horizontal * maxSpeed, rigid.velocity.y, 0);
     }
     
 }
