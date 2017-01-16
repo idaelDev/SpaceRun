@@ -1,57 +1,101 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
-/// <summary>
-/// This class manage the movement of characters in the game
-/// It is based on rigidbody physics so it required a rigidbody in te scene.
-/// </summary>
-[RequireComponent(typeof(Rigidbody))]
-public class CharacterMovementScript : AbstractControllable {
-
-    //Parameters
+public class CharacterMovementScript : AbstractControlable
+{
     [SerializeField]
-    private float maxSpeed = 50;
+    private float m_MaxSpeed = 10f;                    // The fastest the player can travel in the x axis.
     [SerializeField]
-    private float jumpForce = 10f;
+    private float m_JumpForce = 400f;                  // Amount of force added when the player jumps.
+    [SerializeField]
+    private bool m_AirControl = false;                 // Whether or not a player can steer while jumping;
+    [SerializeField]
+    private LayerMask m_WhatIsGround;                  // A mask determining what is ground to the character
 
-    private bool isGrounded;
+    private Transform m_GroundCheck;    // A position marking where to check if the player is grounded.
+    const float k_GroundedRadius = .2f; // Radius of the overlap circle to determine if grounded
+    private bool m_Grounded;            // Whether or not the player is grounded.
+    private Transform m_CeilingCheck;   // A position marking where to check for ceilings
+    const float k_CeilingRadius = .01f; // Radius of the overlap circle to determine if the player can stand up
+    private Animator m_Anim;            // Reference to the player's animator component.
+    private Rigidbody2D m_Rigidbody2D;
+    private bool m_FacingRight = true;  // For determining which way the player is currently facing.
 
-    //Component References
-    private Rigidbody rigid;
-    private SphereCollider footCollider;
-
-    public void Awake()
+    private void Awake()
     {
-        Physics.gravity *= 2;
-        rigid = GetComponent<Rigidbody>();
-        footCollider = GetComponentInChildren<SphereCollider>();
+        // Setting up references.
+        m_GroundCheck = transform.Find("GroundCheck");
+        m_CeilingCheck = transform.Find("CeilingCheck");
+        m_Anim = GetComponent<Animator>();
+        m_Rigidbody2D = GetComponent<Rigidbody2D>();
     }
 
-    void FixedUpdate()
+
+    private void FixedUpdate()
     {
-        isGrounded = false;
-        Collider[] colliders = Physics.OverlapSphere(footCollider.transform.position, footCollider.radius);
+        m_Grounded = false;
+
+        // The player is grounded if a circlecast to the groundcheck position hits anything designated as ground
+        // This can be done using layers instead but Sample Assets will not overwrite your project settings.
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(m_GroundCheck.position, k_GroundedRadius, m_WhatIsGround);
         for (int i = 0; i < colliders.Length; i++)
         {
-            if(colliders[i].gameObject.tag != gameObject.tag)
-            {
-                isGrounded = true;
-            }
+            if (colliders[i].gameObject != gameObject)
+                m_Grounded = true;
         }
+        m_Anim.SetBool("Ground", m_Grounded);
+
+        // Set the vertical animation
+        m_Anim.SetFloat("vSpeed", m_Rigidbody2D.velocity.y);
     }
 
-    public override void Control(float horizontal, float vertical, bool jump)
+    private void Flip()
     {
+        // Switch the way the player is labelled as facing.
+        m_FacingRight = !m_FacingRight;
 
-        if (jump)
+        // Multiply the player's x local scale by -1.
+        Vector3 theScale = transform.localScale;
+        theScale.x *= -1;
+        transform.localScale = theScale;
+    }
+
+    public override void Control(float horizontal, float vertical)
+    {
+        //only control the player if grounded or airControl is turned on
+        if (m_Grounded || m_AirControl)
         {
-            if (isGrounded)
+            // The Speed animator parameter is set to the absolute value of the horizontal input.
+            m_Anim.SetFloat("Speed", Mathf.Abs(horizontal));
+
+            // Move the character
+            m_Rigidbody2D.velocity = new Vector2(horizontal * m_MaxSpeed, m_Rigidbody2D.velocity.y);
+
+            // If the input is moving the player right and the player is facing left...
+            if (horizontal > 0 && !m_FacingRight)
             {
-                isGrounded = false;
-                rigid.AddForce(Vector3.up * jumpForce);
+                // ... flip the player.
+                Flip();
+            }
+            // Otherwise if the input is moving the player left and the player is facing right...
+            else if (horizontal < 0 && m_FacingRight)
+            {
+                // ... flip the player.
+                Flip();
             }
         }
 
-        rigid.velocity = new Vector3(horizontal * maxSpeed, rigid.velocity.y, 0);
     }
-    
+
+    public override void OnAction(bool action)
+    {
+        // If the player should jump...
+        if (m_Grounded && action && m_Anim.GetBool("Ground"))
+        {
+            // Add a vertical force to the player.
+            m_Grounded = false;
+            m_Anim.SetBool("Ground", false);
+            m_Rigidbody2D.AddForce(new Vector2(0f, m_JumpForce));
+        }
+    }
 }

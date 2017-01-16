@@ -9,6 +9,7 @@ public class GameManager : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+        //Instantiate players
         players = new PlayerControllerScript[4];
         for (int i = 0; i < players.Length; i++)
         {
